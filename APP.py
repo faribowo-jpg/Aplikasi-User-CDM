@@ -205,6 +205,46 @@ textarea {
 """,
     unsafe_allow_html=True,
 )
+st.markdown("""
+<style>
+
+/* SELECTBOX NAVBAR */
+div[data-baseweb="select"] > div {
+    background-color: #ED1C24 !important;
+    border-radius: 10px !important;
+    min-height: 45px !important;
+    border: none !important;
+}
+
+/* TEXT VALUE */
+div[data-baseweb="select"] div {
+    color: white !important;
+    font-weight: 600 !important;
+}
+
+/* PLACEHOLDER / SELECTED TEXT */
+div[data-baseweb="select"] span {
+    color: white !important;
+    font-weight: 600 !important;
+}
+
+/* INPUT TEXT */
+div[data-baseweb="select"] input {
+    color: white !important;
+}
+
+/* DROPDOWN ICON */
+div[data-baseweb="select"] svg {
+    fill: white !important;
+}
+
+/* HOVER */
+div[data-baseweb="select"]:hover > div {
+    background-color: #c81018 !important;
+}
+
+</style>
+""", unsafe_allow_html=True)
 
 
 # ==============================
@@ -450,24 +490,6 @@ if not st.session_state.login:
 
     # STOP HARUS DI DALAM IF
     st.stop()
-# ==============================
-# HEADER
-# ==============================
-col1, col2 = st.columns([1, 6])
-
-with col1:
-    st.image("logo_alfamart.png", width=140)
-
-with col2:
-    st.markdown(
-        f"""
-    <div class="header-box">
-        <h2 style='margin-bottom:0;'>Aplikasi Pengajuan User CDM</h2>
-        
-    """,
-        unsafe_allow_html=True,
-    )
-
 
 # ==============================
 # MENU: HOME
@@ -480,17 +502,7 @@ if "menu" not in st.session_state:
 
 menu = st.session_state.menu
 role = st.session_state.get("role", "user")  
-if menu == "HOME":
 
-    st.markdown(
-    f"""
-<h2>👋 Selamat Datang, {st.session_state.get("nama", "-")}</h2>
-""",
-    unsafe_allow_html=True,
-)
-    st.markdown("### 📊 KPI CDM")
-
-    col1, col2, col3 = st.columns([1, 3, 1])
 
     
      
@@ -555,10 +567,10 @@ def get_notif_per_menu(df_all, user_df):
         result[k] = int(counts.get(k, 0))
 
     return result
+# ==============================
+# TOP NAVIGATION
+# ==============================
 
-# ==============================
-# SIDEBAR PRO VERSION
-# ==============================
 # Load data untuk badge
 if os.path.exists("data.xlsx"):
     df_all = pd.read_excel("data.xlsx")
@@ -575,94 +587,163 @@ if not df_all.empty and "status" in df_all.columns:
 else:
     badge_count = 0
 
-with st.sidebar:
 
-    # ======================
-    # PROFILE
-    # ======================
-    st.markdown(
-    f"""
-    <div class="profile-box">
-    <h4>👤 {st.session_state.nama}</h4>
-    <p>Cabang: {st.session_state.kode_cabang}</p>
-    <p>Jabatan: {st.session_state.get("jabatan","-")}</p>
-    <p>Role: <b>{st.session_state.role.upper()}</b></p>
-     </div>
-    """,
-    unsafe_allow_html=True,
-)
 
-    st.markdown("### 📋 Menu")
+# ======================
+# MENU STYLE
+# ======================
+st.markdown("""
+<style>
 
-    # ======================
-    # INIT MENU
-    # ======================
-    if "menu" not in st.session_state:
+.top-menu button {
+    width: 100%;
+    height: 45px;
+    border-radius: 10px;
+    border: none;
+    background-color: #0057A8;
+    color: white;
+    font-weight: 600;
+}
+
+.top-menu button:hover {
+    background-color: #ED1C24;
+    color: white;
+}
+
+</style>
+""", unsafe_allow_html=True)
+
+# ======================
+# MENU BUTTON FUNCTION
+# ======================
+def set_menu(menu_name):
+    st.session_state.menu = menu_name
+
+# ==============================
+# TOP NAVIGATION
+# ==============================
+
+# Load data badge
+if os.path.exists("data.xlsx"):
+    df_all = pd.read_excel("data.xlsx")
+else:
+    df_all = pd.DataFrame()
+
+notif = get_notif_per_menu(df_all, user)
+
+if not df_all.empty and "status" in df_all.columns:
+    pending = df_all[
+        ~df_all["status"].isin(["done", "Batal"])
+    ]
+    badge_count = len(pending)
+else:
+    badge_count = 0
+
+# ======================
+# INIT MENU
+# ======================
+if "menu" not in st.session_state:
+    st.session_state.menu = "HOME"
+
+if "menu_pengajuan" not in st.session_state:
+    st.session_state.menu_pengajuan = "Pilih Menu"
+
+
+# ======================
+# TOP MENU
+# ======================
+col1, col2, col3, col4 = st.columns([1,2,1,1])
+
+with col1:
+    if st.button("🏠 HOME", use_container_width=True):
         st.session_state.menu = "HOME"
 
-    # ======================
-    # FUNCTION MENU BUTTON (ANTI ERROR)
-    # ======================
+with col2:
 
-    def menu_btn(label, key, icon="", badge=None):
+    pilihan = [
+        "Pilih Menu",
+        "QR Toko GO",
+        "CS Pindah MS",
+        "Relokasi Mesin",
+        "Penambahan Mesin"
+    ]
 
-        is_active = st.session_state.menu == key
+    selected = st.selectbox(
+    "",
+    [
+        "📋 Menu Pengajuan",
+        "QR Toko GO",
+        "CS Pindah MS",
+        "Relokasi Mesin",
+        "Penambahan Mesin"
+    ],
+    key="menu_pengajuan",
+    label_visibility="collapsed"
+)
 
-        text = f"{icon} {label}"
+    if selected != "📋 Menu Pengajuan":
+        st.session_state.menu = selected
 
-        if badge:
-            text += f" ({badge})"
+with col3:
+    if st.button(f"📊 Monitoring ({badge_count})", use_container_width=True):
+        st.session_state.menu = "Monitoring"
 
-        clicked = st.button(
-            text, key=f"menu_{key}", use_container_width=True  # ✅ WAJIB UNIQUE
-        )
-
-        if clicked:
-            st.session_state.menu = key
-            st.rerun()
-
-        # highlight aktif
-        if is_active:
-            st.markdown(
-                f"""
-            <style>
-            div[data-testid="stButton"][key="menu_{key}"] button {{
-                background-color: #ED1C24 !important;
-                color: white !important;
-                font-weight: bold;
-            }}
-            </style>
-            """,
-                unsafe_allow_html=True,
-            )
-
-    # ======================
-    # MENU LIST
-    # ======================
-    menu_btn("HOME", "HOME", "🏠")
-
-    menu_btn("QR Toko GO", "QR Toko GO", "📌", badge=notif["QR Toko GO"])
-    menu_btn("CS Pindah MS", "CS Pindah MS", "🔄", badge=notif["CS Pindah MS"])
-    menu_btn("Relokasi Mesin", "Relokasi Mesin", "🚚", badge=notif["Relokasi Mesin"])
-    menu_btn("Penambahan Mesin", "Penambahan Mesin", "➕", badge=notif["Penambahan Mesin"])
-
-# total (optional)
-    total_notif = sum(notif.values())
-    menu_btn("Monitoring", "Monitoring", "📊", badge=total_notif)
-
-    st.markdown("---")
-
-    # ======================
-    # LOGOUT
-    # ======================
-    if st.button("🚪 Logout", key="logout_btn", use_container_width=True):
+with col4:
+    if st.button("🚪 Logout", use_container_width=True):
         st.session_state.clear()
         st.rerun()
 
+st.markdown("---")
+
 # ======================
-# SET MENU GLOBAL
+# PROFILE
 # ======================
+st.markdown(
+f"""
+<div class="profile-box">
+<h4>👤 {st.session_state.nama}</h4>
+<p>
+Cabang: {st.session_state.kode_cabang} |
+Jabatan: {st.session_state.get("jabatan","-")} |
+Role: <b>{st.session_state.role.upper()}</b>
+</p>
+</div>
+""",
+unsafe_allow_html=True,
+)
+
 menu = st.session_state.menu
+
+if menu == "HOME":
+
+    st.markdown(
+    f"""
+<h2>👋 Selamat Datang, {st.session_state.get("nama", "-")}</h2>
+""",
+    unsafe_allow_html=True,
+)
+    
+
+    col1, col2, col3 = st.columns([1, 3, 1])
+
+# ==============================
+# HEADER
+# ==============================
+col1, col2 = st.columns([1, 6])
+
+with col1:
+    st.image("logo_alfamart.png", width=140)
+
+with col2:
+    st.markdown(
+        """
+        <h1 style='margin-top:20px; color:#2d3748;'>
+        Aplikasi Pengajuan User CDM
+        </h1>
+        """,
+        unsafe_allow_html=True,
+    )
+
 
 def load_data():
 
