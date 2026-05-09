@@ -645,8 +645,23 @@ else:
 if "menu" not in st.session_state:
     st.session_state.menu = "HOME"
 
-if "menu_pengajuan" not in st.session_state:
-    st.session_state.menu_pengajuan = "Pilih Menu"
+# ======================
+# INIT MENU PENGAJUAN
+# ======================
+menu_options = [
+    "📋 Menu Pengajuan",
+    "QR Toko GO",
+    "CS Pindah MS",
+    "Relokasi Mesin",
+    "Penambahan Mesin"
+]
+
+# reset jika value lama tidak valid
+if (
+    "menu_pengajuan" not in st.session_state
+    or st.session_state.menu_pengajuan not in menu_options
+):
+    st.session_state.menu_pengajuan = "📋 Menu Pengajuan"
 
 
 # ======================
@@ -670,16 +685,11 @@ with col2:
 
     selected = st.selectbox(
     "",
-    [
-        "📋 Menu Pengajuan",
-        "QR Toko GO",
-        "CS Pindah MS",
-        "Relokasi Mesin",
-        "Penambahan Mesin"
-    ],
+    menu_options,
     key="menu_pengajuan",
     label_visibility="collapsed"
 )
+
 
     if selected != "📋 Menu Pengajuan":
         st.session_state.menu = selected
