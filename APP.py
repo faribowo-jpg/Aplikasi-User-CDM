@@ -5,176 +5,53 @@ import base64
 import io
 from datetime import datetime
 
-import base64
-
-def make_download_link(filename):
-    if pd.isna(filename) or filename == "":
-        return ""
-
-    path = os.path.join("uploads", filename)
-
-    if not os.path.exists(path):
-        return ""
-
-    with open(path, "rb") as f:
-        data = f.read()
-
-    b64 = base64.b64encode(data).decode()
-
-    return f"data:application/pdf;base64,{b64}"
-def set_bg(image_file):
-    import base64
-
-    with open(image_file, "rb") as f:
-        encoded = base64.b64encode(f.read()).decode()
-
-    st.markdown(
-        f"""
-    <style>
-    .stApp {{
-        background-image: url("data:image/jpg;base64,{encoded}");
-        background-size: cover;
-        background-position: center;
-        background-repeat: no-repeat;
-    }}
-    </style>
-    """,
-        unsafe_allow_html=True,
-    )
-
-
 # ==============================
 # CONFIG
 # ==============================
-st.set_page_config(page_title="Aplikasi CDM", layout="wide")
-st.markdown(
-    """
-<style>
-
-/* FORCE HEADER COLOR (WORK ALL VERSION) */
-div[data-testid="stDataFrame"] div[role="table"] div[role="columnheader"] {
-    background: linear-gradient(90deg, #4facfe, #00c6ff) !important;
-    color: white !important;
-    font-weight: 700 !important;
-    text-align: center !important;
-}
-
-/* DATA EDITOR */
-div[data-testid="stDataEditor"] div[role="columnheader"] {
-    background: linear-gradient(90deg, #4facfe, #00c6ff) !important;
-    color: white !important;
-    font-weight: 700 !important;
-}
-
-/* ROW */
-div[data-testid="stDataFrame"] div[role="row"]:nth-child(even) {
-    background-color: #f8fafc !important;
-}
-
-/* HOVER */
-div[data-testid="stDataFrame"] div[role="row"]:hover {
-    background-color: #e0f2fe !important;
-}
-
-/* TEXT CENTER */
-div[data-testid="stDataFrame"] div[role="cell"] {
-    text-align: center;
-}
-
-</style>
-""",
-    unsafe_allow_html=True,
+st.set_page_config(
+    page_title="Aplikasi Pengajuan User CDM",
+    layout="wide"
 )
-st.markdown(
-    """
-<style>
-/* Card */
-.card {
-background: white;
-padding: 20px;
-border-radius: 15px;
-box-shadow: 0px 4px 15px rgba(0,0,0,0.08);
-margin-bottom: 20px;
-}
 
-/* Header */
-h3 {
-margin-bottom: 15px;
-}
-
-/* Table */
-</style>
-""",
-    unsafe_allow_html=True,
-)
 # ==============================
-# BACKGROUND DINAMIS
-# ==============================
-if "login" not in st.session_state:
-    st.session_state.login = False
-
-if st.session_state.login:
-    set_bg("background_app.jpg")  # setelah login
-else:
-    set_bg("background_login.jpg")  # sebelum login
-# ==============================
-# CSS ALFAMART STYLE
+# CSS
 # ==============================
 st.markdown("""
 <style>
 
-/* Semua tombol */
+/* BACKGROUND */
+.main {
+    background-color: #f5f7fa;
+}
+
+/* BUTTON */
 .stButton > button {
     background-color: #ED1C24;
     color: white;
     border-radius: 10px;
     border: none;
-    height: 36px;
-    padding: 0 15px;
-    font-size: 14px;
+    height: 38px;
+    font-weight: 600;
 }
 
-/* DOWNLOAD BUTTON (WAJIB INI) */
+/* DOWNLOAD BUTTON */
 .stDownloadButton > button {
     background-color: #ED1C24 !important;
     color: white !important;
     border-radius: 10px !important;
     border: none !important;
-    height: 36px !important;
-    padding: 0 15px !important;
-    font-size: 14px !important;
 }
 
-</style>
-""", unsafe_allow_html=True)
-st.markdown(
-    """
-<style>
-
-/* Background */
-.main {
-    background-color: #f5f7fa;
-}
-
-/* Header */
-.header {
-    background: linear-gradient(90deg, #0057A8, #ED1C24);
-    padding: 20px;
-    border-radius: 15px;
-    color: white;
-    margin-bottom: 20px;
-}
-
-/* Card */
+/* CARD */
 .card {
-    background-color: white;
+    background: white;
     padding: 20px;
-    border-radius: 15px;
+    border-radius: 16px;
     box-shadow: 0px 4px 12px rgba(0,0,0,0.08);
     margin-bottom: 20px;
 }
 
-/* Sidebar profile */
+/* PROFILE */
 .profile-box {
     background: linear-gradient(90deg, #0057A8, #ED1C24);
     padding: 15px;
@@ -183,105 +60,40 @@ st.markdown(
     margin-bottom: 15px;
 }
 
-/* Button */
-.stButton>button {
-    background-color: #ED1C24;
-    color: white;
-    border-radius: 10px;
-    border: none;
-    height: 40px;
-}
-
-/* Input */
-.stTextInput>div>div>input {
-    border-radius: 8px;
-}
-
-textarea {
-    border-radius: 8px !important;
+/* HEADER TABLE */
+div[data-testid="stDataFrame"] div[role="columnheader"] {
+    background: linear-gradient(90deg, #4facfe, #00c6ff) !important;
+    color: white !important;
+    font-weight: 700 !important;
 }
 
 </style>
-""",
-    unsafe_allow_html=True,
-)
-
+""", unsafe_allow_html=True)
 
 # ==============================
-# TABLE RENDER (FULL FITUR)
+# BACKGROUND
 # ==============================
-def render_table(df, page=1, page_size=10):
+def set_bg(image_file):
 
-    total_data = len(df)
-    total_page = max(
-        1, (total_data // page_size) + (1 if total_data % page_size else 0)
+    if not os.path.exists(image_file):
+        return
+
+    with open(image_file, "rb") as f:
+        encoded = base64.b64encode(f.read()).decode()
+
+    st.markdown(
+        f"""
+        <style>
+        .stApp {{
+            background-image: url("data:image/jpg;base64,{encoded}");
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }}
+        </style>
+        """,
+        unsafe_allow_html=True
     )
-
-    start = (page - 1) * page_size
-    end = start + page_size
-    df_page = df.iloc[start:end]
-
-    html = """
-    <style>
-    .custom-table {
-        border-collapse: collapse;
-        width: 100%;
-        font-size: 14px;
-        border-radius: 12px;
-        overflow: hidden;
-    }
-
-    .custom-table th {
-        background: linear-gradient(90deg, #4facfe, #00c6ff);
-        color: white;
-        padding: 10px;
-        text-align: center;
-    }
-
-    .custom-table td {
-        padding: 8px;
-        text-align: center;
-        border-bottom: 1px solid #eee;
-    }
-
-    .custom-table tr:nth-child(even) {
-        background-color: #f9fafb;
-    }
-
-    .custom-table tr:hover {
-        background-color: #e0f2fe;
-    }
-
-    .status-pengajuan {background:#dbeafe;color:#1e40af;font-weight:bold;}
-    .status-diproses {background:#fef3c7;color:#92400e;font-weight:bold;}
-    .status-done {background:#d1fae5;color:#065f46;font-weight:bold;}
-    .status-Batal {background:#fee2e2;color:#991b1b;font-weight:bold;}
-    </style>
-
-    <table class="custom-table">
-        <thead><tr>
-    """
-
-    for col in df.columns:
-        html += f"<th>{col}</th>"
-
-        html += "</tr></thead><tbody>"
-
-    for _, row in df_page.iterrows():
-        html += "<tr>"
-        for col in df.columns:
-            val = row[col]
-            if col == "status":
-                cls = f"status-{str(val).lower()}"
-                html += f"<td class='{cls}'>{val}</td>"
-            else:
-                html += f"<td>{val}</td>"
-        html += "</tr>"
-
-        html += "</tbody></table>"
-        st.markdown(html, unsafe_allow_html=True)
-        return total_page
-
 
 # ==============================
 # SAFE
@@ -289,146 +101,253 @@ def render_table(df, page=1, page_size=10):
 def safe(x):
     return "" if pd.isna(x) else str(x)
 
+# ==============================
+# SESSION
+# ==============================
+if "login" not in st.session_state:
+    st.session_state.login = False
 
-def highlight_status(val):
-    if val == "done":
-        return "background-color: #d1fae5; color:#065f46; font-weight:600;"
-    elif val == "diproses":
-        return "background-color: #fef3c7; color:#92400e; font-weight:600;"
-    elif val == "Batal":
-        return "background-color: #fee2e2; color:#991b1b; font-weight:600;"
-    elif val == "Pengajuan":
-        return "background-color: #dbeafe; color:#1e40af; font-weight:600;"
-    return ""
+if "menu" not in st.session_state:
+    st.session_state.menu = "HOME"
 
-
-
-    for col in df.columns:
-        html += "<th>" + str(col) + "</th>"
-
-    html += "</tr></thead><tbody>"
-
-    for i in range(len(df)):
-        html += "<tr>"
-        for col in df.columns:
-            html += "<td>" + str(df.iloc[i][col]) + "</td>"
-        html += "</tr>"
-
-    html += "</tbody></table>"
-
-    st.markdown(html, unsafe_allow_html=True)
-
+# ==============================
+# BACKGROUND SWITCH
+# ==============================
+if st.session_state.login:
+    set_bg("background_app.jpg")
+else:
+    set_bg("background_login.jpg")
 
 # ==============================
 # LOAD MASTER
 # ==============================
 @st.cache_data
 def load_master():
+
     cabang = pd.read_excel("master_data.xlsx", sheet_name="cabang")
     toko = pd.read_excel("master_data.xlsx", sheet_name="toko")
     ms = pd.read_excel("master_data.xlsx", sheet_name="ms")
     rekening = pd.read_excel("master_data.xlsx", sheet_name="rekening")
     user = pd.read_excel("master_data.xlsx", sheet_name="user")
 
-    user["nik"] = user["nik"].astype(str).str.strip().str.lstrip("0")
+    user["nik"] = (
+        user["nik"]
+        .astype(str)
+        .str.strip()
+        .str.lstrip("0")
+    )
+
     return cabang, toko, ms, rekening, user
 
-
 cabang, toko, ms, rekening, user = load_master()
-
 
 # ==============================
 # LOOKUP
 # ==============================
 def get_cabang(k):
+
     if not k:
         return None
 
     k = str(k).strip().upper()
 
     df = cabang.copy()
-    df["kode_cabang"] = df["kode_cabang"].astype(str).str.strip().str.upper()
+
+    df["kode_cabang"] = (
+        df["kode_cabang"]
+        .astype(str)
+        .str.strip()
+        .str.upper()
+    )
 
     d = df[df["kode_cabang"] == k]
 
     return d.iloc[0] if not d.empty else None
 
-
 def get_toko(k):
-    d = toko[toko["kode_toko"] == k]
-    return d.iloc[0] if not d.empty else None
 
+    d = toko[
+        toko["kode_toko"].astype(str).str.upper() == str(k).upper()
+    ]
+
+    return d.iloc[0] if not d.empty else None
 
 def get_ms(k):
-    d = ms[ms["kode_ms"] == k]
-    return d.iloc[0] if not d.empty else None
 
+    d = ms[
+        ms["kode_ms"].astype(str).str.upper() == str(k).upper()
+    ]
+
+    return d.iloc[0] if not d.empty else None
 
 def get_rek(k):
-    d = rekening[rekening["kode_toko"] == k]
+
+    d = rekening[
+        rekening["kode_toko"].astype(str).str.upper() == str(k).upper()
+    ]
+
     return d.iloc[0] if not d.empty else None
 
+# ==============================
+# LOAD DATA
+# ==============================
+def load_data():
+
+    file = "data.xlsx"
+
+    if os.path.exists(file):
+        df = pd.read_excel(file)
+    else:
+        df = pd.DataFrame()
+
+    if df.empty:
+        return df
+
+    required_cols = [
+        "jenis_pengajuan",
+        "status",
+        "user"
+    ]
+
+    for col in required_cols:
+        if col not in df.columns:
+            df[col] = ""
+
+    df["user"] = df["user"].astype(str)
+
+    return df
 
 # ==============================
-# BACKGROUND (TARUH DI SINI)
+# FILTER ROLE
 # ==============================
-def get_base64(file):
-    with open(file, "rb") as f:
-        return base64.b64encode(f.read()).decode()
+def filter_by_role(df, user_df, nik_login, role):
 
+    if df.empty:
+        return df
 
-def set_bg(image_file):
-    import base64
+    user_df = user_df.copy()
 
-    with open(image_file, "rb") as f:
-        encoded = base64.b64encode(f.read()).decode()
+    user_df["nik"] = user_df["nik"].astype(str)
+    user_df["nik_regional"] = user_df["nik_regional"].astype(str)
 
-    st.markdown(
-        f"""
-    <style>
-    .stApp {{
-        background-image: url("data:image/jpg;base64,{encoded}");
-        background-size: cover;
-        background-position: center;
-        background-repeat: no-repeat;
-    }}
-    </style>
-    """,
-        unsafe_allow_html=True,
-    )
+    if "regional" in user_df.columns:
+        user_df["regional"] = (
+            user_df["regional"]
+            .astype(str)
+            .str.strip()
+            .str.upper()
+        )
 
+    if "user" not in df.columns:
+        df["user"] = ""
+
+    df["user"] = df["user"].astype(str)
+
+    # ======================
+    # ADMIN
+    # ======================
+    if role == "admin":
+        return df
+
+    # ======================
+    # RFM
+    # ======================
+    elif role == "rfm":
+
+        rfm_data = user_df[user_df["nik"] == nik_login]
+
+        if rfm_data.empty:
+            return pd.DataFrame()
+
+        regional_rfm = (
+            str(rfm_data.iloc[0]["regional"])
+            .strip()
+            .upper()
+        )
+
+        user_regional = user_df[
+            user_df["regional"] == regional_rfm
+        ]
+
+        nik_list = user_regional["nik"].tolist()
+
+        return df[df["user"].isin(nik_list)]
+
+    # ======================
+    # REGIONAL
+    # ======================
+    elif role == "regional":
+
+        user_regional = user_df[
+            user_df["nik_regional"] == nik_login
+        ]
+
+        nik_list = user_regional["nik"].tolist()
+        nik_list.append(nik_login)
+
+        return df[df["user"].isin(nik_list)]
+
+    # ======================
+    # USER
+    # ======================
+    else:
+
+        return df[df["user"] == nik_login]
+
+# ==============================
+# SAVE
+# ==============================
+def save(data):
+
+    file = "data.xlsx"
+
+    if os.path.exists(file):
+
+        df_old = pd.read_excel(file)
+
+        df_new = pd.concat(
+            [df_old, pd.DataFrame([data])],
+            ignore_index=True
+        )
+
+    else:
+
+        df_new = pd.DataFrame([data])
+
+    df_new.to_excel(file, index=False)
 
 # ==============================
 # LOGIN
 # ==============================
-if "login" not in st.session_state:
-    st.session_state.login = False
-
 if not st.session_state.login:
 
-    # ======================
-    # LAYOUT LOGIN (HARUS DI DALAM IF)
-    # ======================
-    col1, col2 = st.columns([1, 1])
+    col1, col2 = st.columns([1,1])
 
     with col1:
 
-        st.markdown('<div class="login-card">', unsafe_allow_html=True)
+        st.markdown('<div class="card">', unsafe_allow_html=True)
 
         st.image("logo_alfamart.png", width=180)
 
         st.markdown(
-            "<h2 style='color:#0057A8;'>Login Aplikasi CDM</h2>", unsafe_allow_html=True
+            "<h2 style='color:#0057A8;'>Login Aplikasi CDM</h2>",
+            unsafe_allow_html=True
         )
 
         nik = st.text_input("NIK")
         pw = st.text_input("Password", type="password")
 
         if st.button("Login"):
+
             nik = safe(nik).lstrip("0")
-            cek = user[(user["nik"] == nik) & (user["password"] == pw)]
+
+            cek = user[
+                (user["nik"] == nik) &
+                (user["password"] == pw)
+            ]
 
             if not cek.empty:
+
                 st.session_state.login = True
                 st.session_state.nik = nik
                 st.session_state.role = cek.iloc[0]["role"]
@@ -436,8 +355,8 @@ if not st.session_state.login:
                 st.session_state.nama = cek.iloc[0]["nama_user"]
                 st.session_state.vendor = cek.iloc[0]["vendor"]
                 st.session_state.jabatan = cek.iloc[0]["jabatan"]
-                st.session_state.login = True
-                st.session_state.menu = "HOME"  # ⬅️ TAMBAHKAN INI
+                st.session_state.menu = "HOME"
+
                 st.rerun()
 
             else:
@@ -445,822 +364,145 @@ if not st.session_state.login:
 
         st.markdown("</div>", unsafe_allow_html=True)
 
-    with col2:
-        st.empty()
-
-    # STOP HARUS DI DALAM IF
     st.stop()
+
 # ==============================
 # HEADER
 # ==============================
-col1, col2 = st.columns([1, 6])
+col1, col2 = st.columns([1,6])
 
 with col1:
     st.image("logo_alfamart.png", width=140)
 
 with col2:
     st.markdown(
-        f"""
-    <div class="header-box">
-        <h2 style='margin-bottom:0;'>Aplikasi Pengajuan User CDM</h2>
-        
-    """,
-        unsafe_allow_html=True,
+        """
+        <h1>Aplikasi Pengajuan User CDM</h1>
+        """,
+        unsafe_allow_html=True
     )
 
-
 # ==============================
-# MENU: HOME
+# SIDEBAR
 # ==============================
-# ======================
-# INIT MENU
-# ======================
-if "menu" not in st.session_state:
-    st.session_state.menu = "HOME"
-
-menu = st.session_state.menu
-role = st.session_state.get("role", "user")  
-if menu == "HOME":
-
-    st.markdown(
-    f"""
-<h2>👋 Selamat Datang, {st.session_state.get("nama", "-")}</h2>
-""",
-    unsafe_allow_html=True,
-)
-    st.markdown("### 📊 KPI CDM")
-
-    col1, col2, col3 = st.columns([1, 3, 1])
-
-    
-     
-
-# ==============================
-# NOTIF BADGE
-# ==============================
-def get_notif_per_menu(df_all, user_df):
-    if df_all.empty:
-        return {
-            "QR Toko GO": 0,
-            "CS Pindah MS": 0,
-            "Relokasi Mesin": 0,
-            "Penambahan Mesin": 0,
-        }
-
-    nik_login = str(st.session_state.nik)
-    role = st.session_state.role
-
-    df_all["user"] = df_all["user"].astype(str)
-    df_all["status"] = df_all["status"].astype(str)
-
-    # ======================
-    # FILTER ROLE
-    # ======================
-    if role == "admin":
-        df_notif = df_all
-
-    elif role == "regional":
-        user_df["nik"] = user_df["nik"].astype(str)
-        user_df["nik_regional"] = user_df["nik_regional"].astype(str)
-
-        user_regional = user_df[user_df["nik_regional"] == nik_login]
-        nik_list = user_regional["nik"].tolist()
-        nik_list.append(nik_login)
-
-        df_notif = df_all[df_all["user"].isin(nik_list)]
-
-    else:
-        df_notif = df_all[df_all["user"] == nik_login]
-
-    # ======================
-    # FILTER BELUM DONE
-    # ======================
-    df_notif = df_notif[
-        df_notif["status"].isin(["Pengajuan", "diproses"])
-    ]
-
-    # ======================
-    # HITUNG PER JENIS
-    # ======================
-    result = {
-        "QR Toko GO": 0,
-        "CS Pindah MS": 0,
-        "Relokasi Mesin": 0,
-        "Penambahan Mesin": 0,
-    }
-
-    counts = df_notif["jenis_pengajuan"].value_counts()
-
-    for k in result.keys():
-        result[k] = int(counts.get(k, 0))
-
-    return result
-
-# ==============================
-# SIDEBAR PRO VERSION
-# ==============================
-# Load data untuk badge
-if os.path.exists("data.xlsx"):
-    df_all = pd.read_excel("data.xlsx")
-else:
-    df_all = pd.DataFrame()
-
-notif = get_notif_per_menu(df_all, user)
-
-if not df_all.empty and "status" in df_all.columns:
-    pending = df_all[
-        ~df_all["status"].isin(["done", "Batal"])
-    ]
-    badge_count = len(pending)
-else:
-    badge_count = 0
-
 with st.sidebar:
 
-    # ======================
-    # PROFILE
-    # ======================
     st.markdown(
-    f"""
-    <div class="profile-box">
-    <h4>👤 {st.session_state.nama}</h4>
-    <p>Cabang: {st.session_state.kode_cabang}</p>
-    <p>Jabatan: {st.session_state.get("jabatan","-")}</p>
-    <p>Role: <b>{st.session_state.role.upper()}</b></p>
-     </div>
-    """,
-    unsafe_allow_html=True,
-)
+        f"""
+        <div class="profile-box">
+            <h4>👤 {st.session_state.nama}</h4>
+            <p>Cabang: {st.session_state.kode_cabang}</p>
+            <p>Role: {st.session_state.role}</p>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
 
-    st.markdown("### 📋 Menu")
-
-    # ======================
-    # INIT MENU
-    # ======================
-    if "menu" not in st.session_state:
+    if st.button("🏠 HOME", use_container_width=True):
         st.session_state.menu = "HOME"
+        st.rerun()
 
-    # ======================
-    # FUNCTION MENU BUTTON (ANTI ERROR)
-    # ======================
-
-    def menu_btn(label, key, icon="", badge=None):
-
-        is_active = st.session_state.menu == key
-
-        text = f"{icon} {label}"
-
-        if badge:
-            text += f" ({badge})"
-
-        clicked = st.button(
-            text, key=f"menu_{key}", use_container_width=True  # ✅ WAJIB UNIQUE
-        )
-
-        if clicked:
-            st.session_state.menu = key
-            st.rerun()
-
-        # highlight aktif
-        if is_active:
-            st.markdown(
-                f"""
-            <style>
-            div[data-testid="stButton"][key="menu_{key}"] button {{
-                background-color: #ED1C24 !important;
-                color: white !important;
-                font-weight: bold;
-            }}
-            </style>
-            """,
-                unsafe_allow_html=True,
-            )
-
-    # ======================
-    # MENU LIST
-    # ======================
-    menu_btn("HOME", "HOME", "🏠")
-
-    menu_btn("QR Toko GO", "QR Toko GO", "📌", badge=notif["QR Toko GO"])
-    menu_btn("CS Pindah MS", "CS Pindah MS", "🔄", badge=notif["CS Pindah MS"])
-    menu_btn("Relokasi Mesin", "Relokasi Mesin", "🚚", badge=notif["Relokasi Mesin"])
-    menu_btn("Penambahan Mesin", "Penambahan Mesin", "➕", badge=notif["Penambahan Mesin"])
-
-# total (optional)
-    total_notif = sum(notif.values())
-    menu_btn("Monitoring", "Monitoring", "📊", badge=total_notif)
+    if st.button("📊 Monitoring", use_container_width=True):
+        st.session_state.menu = "Monitoring"
+        st.rerun()
 
     st.markdown("---")
 
-    # ======================
-    # LOGOUT
-    # ======================
-    if st.button("🚪 Logout", key="logout_btn", use_container_width=True):
+    if st.button("🚪 Logout", use_container_width=True):
         st.session_state.clear()
         st.rerun()
 
-# ======================
-# SET MENU GLOBAL
-# ======================
+# ==============================
+# MENU
+# ==============================
 menu = st.session_state.menu
 
-def load_data():
-    if os.path.exists("data.xlsx"):
-        df = pd.read_excel("data.xlsx")
-    else:
-        df = pd.DataFrame()
-
-    if not df.empty:
-        df["user"] = df.get("user", "").astype(str)
-
-    return df
-def filter_by_role(df, user_df, nik_login, role):
-
-    user_df["nik"] = user_df["nik"].astype(str)
-    user_df["nik_regional"] = user_df["nik_regional"].astype(str)
-    user_df["regional"] = user_df["regional"].astype(str).str.strip().str.upper()
-
-    df["user"] = df.get("user", "").astype(str)
-
-    if role == "admin":
-        return df
-
-    elif role == "rfm":
-        rfm_data = user_df[user_df["nik"] == nik_login]
-
-        if rfm_data.empty:
-            return pd.DataFrame()
-
-        regional_rfm = str(rfm_data.iloc[0]["regional"]).strip().upper()
-
-        user_regional = user_df[user_df["regional"] == regional_rfm]
-        nik_list = user_regional["nik"].tolist()
-
-        return df[df["user"].isin(nik_list)]
-
-    elif role == "regional":
-        user_regional = user_df[user_df["nik_regional"] == nik_login]
-        nik_list = user_regional["nik"].tolist()
-        nik_list.append(nik_login)
-
-        return df[df["user"].isin(nik_list)]
-
-    else:
-        return df[df["user"] == nik_login]
 # ==============================
-# SAVE
+# HOME
 # ==============================
-def save(data):
-    
-    file = "data.xlsx"
-    if os.path.exists(file):
-        df = pd.read_excel(file)
-        df = pd.concat([df, pd.DataFrame([data])], ignore_index=True)
-    else:
-        df = pd.DataFrame([data])
-    df.to_excel(file, index=False)
+if menu == "HOME":
 
-
-# ==============================
-# MENU 1: QR
-# ==============================
-if menu == "QR Toko GO":
-
-    st.markdown('<div class="card">', unsafe_allow_html=True)
-    st.subheader("📌 QR Toko GO")
-
-    col1, col2 = st.columns(2)
-
-    with col1:
-        kode_cabang = st.text_input("Kode Cabang")
-
-        kode_toko = st.text_input("Kode Toko")
-        nama_toko = st.text_input("Nama Toko")
-        tipe = st.selectbox("Tipe", ["R", "F"])
-
-    with col2:
-        
-        kode_ms = st.text_input("Kode MS").upper()
-        ms_d = get_ms(kode_ms)
-        nama_ms = ms_d["nama_ms"] if ms_d is not None else ""
-        st.text_input("Nama MS", value=nama_ms, disabled=True)
-        id_mesin = ms_d["id_mesin"] if ms_d is not None else ""
-        st.text_input("ID Mesin", value=id_mesin, disabled=True)
-        tanggal_go = st.date_input("Tanggal GO", value=datetime.today())
-
-    alamat = st.text_area("Alamat")
-    
-   
-    
-
-    rek_d = get_rek(kode_toko)
-    rekening_no = rek_d["no_rekening"] if rek_d is not None else ""
-    bank = rek_d["bank"] if rek_d is not None else ""
-    
-    cabang_data = get_cabang(kode_cabang)
-    vendor = cabang_data["vendor"] if cabang_data is not None else ""
-
-    
-    st.text_input("Bank", value=bank, disabled=True)
-    st.text_input("Rekening", value=rekening_no, disabled=True)
-    st.text_input("Vendor", value=vendor, disabled=True)
-
-
-    
-    # ======================
-    # SUBMIT
-    # ======================
-    if st.button("💾 Submit QR"):
-
-        if not kode_toko or not kode_ms:
-            st.error("Kode Toko & Kode MS wajib diisi")
-            st.stop()
-
-        if ms_d is None:
-            st.error("Kode MS tidak ditemukan")
-            st.stop()
-
-        save(
-            {
-                "jenis_pengajuan": "QR Toko GO",
-                "vendor": st.session_state.vendor,
-                "kode_cabang": kode_cabang,
-                "kode_toko": kode_toko,
-                "nama_toko": nama_toko,
-                "tipe": tipe,
-                "alamat": alamat,
-                "kode_ms": kode_ms,
-                "nama_ms": nama_ms,
-                "id_mesin": id_mesin,
-                "bank": bank,
-                "rekening": rekening_no,
-                "tanggal_go": tanggal_go.strftime("%d-%m-%Y"),
-                "status": "diproses",
-                "tanggal_submit": datetime.now().strftime("%d-%m-%Y %H:%M:%S"),
-                "tanggal_update_status": "",
-                "status": "Pengajuan",
-                "user": st.session_state.nik,
-            }
-        )
-
-        st.success("Berhasil disimpan")
-        st.markdown("</div>", unsafe_allow_html=True)
-
-# ==============================
-# MENU 2: CS
-# ==============================
-elif menu == "CS Pindah MS":
-
-    st.subheader("CS Pindah MS")
-    kode_cabang = st.session_state.kode_cabang
-    kode_cabang = st.text_input("Kode Cabang", key="cs_kode_cabang").upper()
-    cabang_data = get_cabang(kode_cabang)
-    vendor = cabang_data["vendor"] if cabang_data is not None else ""
-    st.text_input("Vendor", value=vendor, disabled=True)
-    
-    kode_toko = st.text_input("Kode Toko", key="cs_kode_toko").strip().upper()
-
-# ======================
-# INIT
-# ======================
-    data = pd.DataFrame()
-    toko_d = None
-
-# ======================
-# LOOKUP
-# ======================
-    if kode_toko:
-     data = toko[toko["kode_toko"] == kode_toko]
-
-    if not data.empty:
-        toko_d = data.iloc[0]
-
-# ======================
-# AUTO FIELD
-# ======================
-    nama_toko = toko_d["nama_toko"] if toko_d is not None else ""
-    alamat = toko_d["alamat"] if toko_d is not None else ""
-    tipe = toko_d["tipe"] if toko_d is not None else ""
-
-# ======================
-# TAMPILKAN
-# ======================
-    st.text_input("Nama Toko", value=nama_toko, disabled=True)
-    st.text_input("Alamat", value=alamat, disabled=True)
-    st.text_input("Tipe", value=tipe, disabled=True)
-
-    ms_awal = st.text_input("Kode MS Lama").upper()
-    ms_tujuan = st.text_input("Kode MS Baru").upper()
-
-    ms_lama = get_ms(ms_awal)
-    ms_baru = get_ms(ms_tujuan)
-
-    nama_ms_lama = ms_lama["nama_ms"] if ms_lama is not None else ""
-    id_mesin_lama = ms_lama["id_mesin"] if ms_lama is not None else ""
-
-    nama_ms_baru = ms_baru["nama_ms"] if ms_baru is not None else ""
-    id_mesin_baru = ms_baru["id_mesin"] if ms_baru is not None else ""
-
-    rek_d = get_rek(kode_toko)
-    rekening_no = rek_d["no_rekening"] if rek_d is not None else ""
-    bank = rek_d["bank"] if rek_d is not None else ""
-
-    st.text_input("Nama MS Lama", value=nama_ms_lama, disabled=True)
-    st.text_input("ID Mesin Lama", value=id_mesin_lama, disabled=True)
-    st.text_input("Nama MS Baru", value=nama_ms_baru, disabled=True)
-    st.text_input("ID Mesin Baru", value=id_mesin_baru, disabled=True)
-
-    if st.button("Submit CS"):
-        save(
-            {
-                "jenis_pengajuan": "CS Pindah MS",
-                "vendor": vendor,
-                "kode_cabang": kode_cabang,
-                "kode_toko": kode_toko,
-                "nama_toko": nama_toko,
-                "tipe": tipe,
-                "alamat": alamat,
-                "kode_ms_lama": ms_awal,
-                "nama_ms_lama": nama_ms_lama,
-                "id_mesin_lama": id_mesin_lama,
-                "kode_ms_baru": ms_tujuan,
-                "nama_ms_baru": nama_ms_baru,
-                "id_mesin_baru": id_mesin_baru,
-                "bank": bank,
-                "rekening": rekening_no,
-                "status": "diproses",
-                "tanggal_submit": datetime.now().strftime("%d-%m-%Y %H:%M:%S"),
-                "tanggal_update_status": "",
-                "status": "Pengajuan",
-                "user": st.session_state.nik,
-            }
-        )
-        st.success("Saved")
-# ====================
-# MENU: RELOKASI MESIN
-# ====================
-elif menu == "Relokasi Mesin":
-
-    st.markdown('<div class="card">', unsafe_allow_html=True)
-    st.subheader("🚚 Relokasi Mesin CDM")
-
-    
-    if "submitted_ids" not in st.session_state:
-     st.session_state.submitted_ids = []
-
-    # ======================
-    # INPUT
-    # ======================
-    col1, col2 = st.columns(2)
-
-    with col1:
-     kode_cabang = st.text_input("Kode Cabang").upper()
-     id_mesin = st.text_input("ID Mesin")
-
-     kode_ms_lama = st.text_input("Kode MS Lama").upper()
-
-     toko_lama = get_toko(kode_ms_lama)  # ✅ GANTI KE TOKO
-
-     nama_ms_lama = toko_lama["nama_toko"] if toko_lama is not None else ""
-
-     st.text_input("Nama MS Lama", value=nama_ms_lama, disabled=True)
-
-    with col2:
-     kode_ms_baru = st.text_input("Kode MS Baru").upper()  # ✅ PINDAH KE SINI
-
-     nama_ms_baru = st.text_input("Nama MS Baru")
-     cabang_ms_baru = st.text_input("Kode Cabang MS Baru")
-
-    # ======================
-    # LOOKUP CABANG → VENDOR
-    # ======================
-     cabang_data = get_cabang(cabang_ms_baru)
-     vendor = cabang_data["vendor"] if cabang_data is not None else ""
-
-     st.text_input("Vendor", value=vendor, disabled=True)
-
-    # ======================
-    # TAMBAHAN BARU (ALAMAT)
-    # ======================
-    alamat_ms_baru = st.text_area("Alamat MS Baru")
-    koordinat = st.text_input("Koordinat Lat,Lon", key="add_koordinat")
-
-    # ======================
-    # SUBMIT
-    # ======================
-    if st.button(
-        "💾 Submit Relokasi",
-        disabled=id_mesin in st.session_state.submitted_ids,
-        use_container_width=True
-    ):
-
-        if not id_mesin or not kode_ms_lama or not kode_ms_baru:
-            st.error("Field wajib belum lengkap")
-            st.stop()
-
-        save({
-            "jenis_pengajuan": "Relokasi Mesin",
-            "kode_cabang": kode_cabang,
-            "id_mesin": id_mesin,
-            "kode_ms_lama": kode_ms_lama,
-            "nama_ms_lama": nama_ms_lama,  
-            "kode_ms_baru": kode_ms_baru,
-            "nama_ms_baru": nama_ms_baru,
-            "cabang_ms_baru": cabang_ms_baru,
-            "alamat_ms_baru": alamat_ms_baru,
-            "koordinat": koordinat,  
-            "vendor": vendor,
-            "status": "Pengajuan",
-            "tanggal_submit": datetime.now().strftime("%d-%m-%Y %H:%M:%S"),
-            "user": st.session_state.nik
-        })
-
-        st.success("✅ Relokasi berhasil disimpan")
-
-        st.session_state.submitted_ids.append(id_mesin)
-        st.rerun()
-
-    st.markdown("</div>", unsafe_allow_html=True)
-# ==============================
-# MENU: PENAMBAHAN MESIN CDM
-# ==============================
-elif menu == "Penambahan Mesin":
-
-    st.markdown('<div class="card">', unsafe_allow_html=True)
-    st.subheader("➕ Penambahan Mesin CDM")
-
-    role = st.session_state.get("role", "user")
-
-    # ======================
-    # RESET FORM (kalau kamu pakai reset_form)
-    # ======================
-    if st.session_state.get("reset_form", False):
-        for key in [
-            "add_kode_cabang",
-            "add_kode_toko",
-            "add_nama_toko",
-            "add_tipe",
-            "add_alamat",
-            "add_koordinat"
-            "add_vendor"
-        ]:
-            st.session_state[key] = ""
-        st.session_state.reset_form = False
-
-    col1, col2 = st.columns(2)
-
-    # ======================
-    # KOLOM KIRI
-    # ======================
-    with col1:
-
-        if role in ["admin", "regional"]:
-            kode_cabang = st.text_input("Kode Cabang", key="add_kode_cabang")
-            kode_cabang = kode_cabang.strip().upper()
-            
-        else:
-            kode_cabang = st.text_input("Kode Cabang", key="add_kode_cabang").upper()
-            kode_cabang = kode_cabang.strip().upper()
-
-        kode_toko = st.text_input("Kode Toko", key="add_kode_toko").upper()
-        nama_toko = st.text_input("Nama Toko", key="add_nama_toko")
-
-    # ======================
-    # KOLOM KANAN
-    # ======================
-    with col2:
-        tipe = st.selectbox("Tipe Toko", ["R", "F"], key="add_tipe")
-        koordinat = st.text_input("Koordinat Lat,Lon", key="add_koordinat")
-        cabang_data = get_cabang(kode_cabang)
-        vendor = cabang_data["vendor"] if cabang_data is not None else ""
-        st.text_input("Vendor", value=vendor, disabled=True)
-
-    # ======================
-    # BAWAH
-    # ======================
-    alamat = st.text_area("Alamat", key="add_alamat")
-
-    # ======================
-    # UPLOAD FILE (WAJIB)
-    # ======================
-    file = st.file_uploader(
-        "Upload ADS Bap Pengajuan Mesin Baru (PDF)",
-        type=["pdf"]
+    st.markdown(
+        f"""
+        <div class="card">
+            <h2>👋 Selamat Datang, {st.session_state.nama}</h2>
+        </div>
+        """,
+        unsafe_allow_html=True
     )
 
-    # ======================
-    # SUBMIT
-    # ======================
-    if st.button("💾 Submit Penambahan", use_container_width=True):
-
-        # VALIDASI FIELD
-        if not all([kode_cabang, kode_toko, nama_toko, tipe, alamat, koordinat]):
-            st.error("Semua field wajib diisi")
-            st.stop()
-
-        # VALIDASI FILE
-        if file is None:
-            st.error("File PDF wajib diupload")
-            st.stop()
-
-        if not file.name.lower().endswith(".pdf"):
-            st.error("File harus PDF")
-            st.stop()
-
-        
-
-        # SIMPAN FILE
-        folder = "uploads"
-        os.makedirs(folder, exist_ok=True)
-
-        file_path = os.path.join(folder, file.name)
-        with open(file_path, "wb") as f:
-            f.write(file.getbuffer())
-
-        # SAVE DATA
-        save({
-            "jenis_pengajuan": "Penambahan Mesin",
-            "kode_cabang": kode_cabang,
-            "kode_toko": kode_toko,
-            "nama_toko": nama_toko,
-            "tipe": tipe,
-            "alamat": alamat,
-            "koordinat": koordinat,
-            "vendor": vendor,
-            "file": file.name,
-            "status": "Pengajuan",
-            "tanggal_submit": datetime.now().strftime("%d-%m-%Y %H:%M:%S"),
-            "user": st.session_state.nik
-        })
-
-        st.success("✅ Pengajuan Penambahan Mesin berhasil disimpan")
-
-        st.session_state.reset_form = True
-        st.rerun()
-
-    st.markdown("</div>", unsafe_allow_html=True)
-
-
 # ==============================
-# MENU 3: MONITORING (UI UPGRADE)
+# MONITORING
 # ==============================
 elif menu == "Monitoring":
 
-    # ======================
-    # INIT
-    # ======================
     nik_login = str(st.session_state.nik)
     role = str(st.session_state.role).strip().lower()
 
     df = load_data()
-    df_view = filter_by_role(df, user, nik_login, role)
+
+    df_view = filter_by_role(
+        df,
+        user,
+        nik_login,
+        role
+    )
 
     if df_view.empty:
-        st.info("📭 Belum ada pengajuan")
+        st.info("Belum ada data")
         st.stop()
 
-    # ======================
     # KPI
-    # ======================
-    col1, col2, col3, col4, col5 = st.columns(5)
+    col1, col2, col3, col4 = st.columns(4)
 
     col1.metric("Total", len(df_view))
-    col2.metric("Pengajuan", len(df_view[df_view["status"] == "Pengajuan"]))
-    col3.metric("Diproses", len(df_view[df_view["status"] == "diproses"]))
-    col4.metric("Done", len(df_view[df_view["status"] == "done"]))
-    col5.metric("Batal", len(df_view[df_view["status"] == "Batal"]))
+    col2.metric(
+        "Pengajuan",
+        len(df_view[df_view["status"] == "Pengajuan"])
+    )
+    col3.metric(
+        "Done",
+        len(df_view[df_view["status"] == "done"])
+    )
+    col4.metric(
+        "Batal",
+        len(df_view[df_view["status"] == "Batal"])
+    )
 
     st.markdown("---")
 
-    # ======================
-    # FILTER UI
-    # ======================
-    col1, col2 = st.columns(2)
+    # FILTER
+    filter_status = st.selectbox(
+        "Filter Status",
+        ["Semua", "Pengajuan", "diproses", "done", "Batal"]
+    )
 
-    with col1:
-        filter_status = st.selectbox(
-            "Filter Status", ["Semua", "Pengajuan", "diproses", "done", "Batal"]
-        )
-
-    with col2:
-        search = st.text_input("🔍 Cari Kode Toko")
+    search = st.text_input("Cari Kode Toko")
 
     df_filtered = df_view.copy()
 
-    # ======================
-    # FILTER LOGIC
-    # ======================
     if filter_status != "Semua":
-        df_filtered = df_filtered[df_filtered["status"] == filter_status]
 
-    if search:
         df_filtered = df_filtered[
-            df_filtered["kode_toko"].astype(str).str.contains(search, case=False, na=False)
+            df_filtered["status"] == filter_status
         ]
 
-    column_order = {
+    if search and "kode_toko" in df_filtered.columns:
 
-    "CS Pindah MS": [
-        "tanggal_submit","jenis_pengajuan","vendor","kode_cabang",
-        "kode_toko","nama_toko","tipe","alamat",
-        "kode_ms_lama","nama_ms_lama","id_mesin_lama",
-        "kode_ms_baru","nama_ms_baru","id_mesin_baru",
-        "bank","rekening","user","status"
-    ],
+        df_filtered = df_filtered[
+            df_filtered["kode_toko"]
+            .astype(str)
+            .str.contains(search, case=False, na=False)
+        ]
 
-    "Penambahan Mesin": [
-        "tanggal_submit","jenis_pengajuan","vendor","kode_cabang",
-        "kode_toko","nama_toko","tipe",
-        "alamat","koordinat","file","user","status"
-    ],
+    # DOWNLOAD LINK
+    if "file" in df_filtered.columns:
 
-    "QR Toko GO": [
-        "tanggal_submit","jenis_pengajuan","vendor","kode_cabang",
-        "kode_toko","nama_toko","tipe",
-        "alamat","kode_ms","nama_ms","id_mesin",
-        "bank","rekening","tanggal_go","user","status"
-    ],
+        df_filtered["Download"] = df_filtered["file"].apply(
+            lambda x: make_download_link(x)
+        )
 
-    "Relokasi Mesin": [
-        "tanggal_submit","jenis_pengajuan","vendor","id_mesin",
-        "kode_cabang","kode_ms_lama","nama_ms_lama",
-        "cabang_ms_baru","kode_ms_baru","nama_ms_baru",
-        "alamat_ms_baru","koordinat","user","status"
-    ]
-}
-    # ======================
-    # EXPORT
-    # ======================
-    import io
-
-    output = io.BytesIO()
-
-    with pd.ExcelWriter(output, engine="xlsxwriter") as writer:
-
-        workbook = writer.book
-
-        header_format = workbook.add_format({
-            "bold": True,
-            "align": "center",
-            "border": 1,
-            "bg_color": "#4F81BD",
-            "color": "white"
-        })
-
-        cell_format = workbook.add_format({"border": 1})
-        zebra_format = workbook.add_format({"bg_color": "#F2F2F2", "border": 1})
-
-        df_export = df_view.copy()
-
-        if df_export.empty:
-            df_export.to_excel(writer, sheet_name="Data", index=False)
-
-        else:
-            grouped = df_export.groupby("jenis_pengajuan")
-
-            for jenis, data in grouped:
-
-                data = data.copy()
-
-            # hapus kolom kosong
-                data = data.dropna(axis=1, how="all")
-                data = data.loc[:, (data != "").any()]
-                if jenis in column_order:
-                    ordered_cols = [col for col in column_order[jenis] if col in data.columns]
-                    remaining_cols = [col for col in data.columns if col not in ordered_cols]
-                    data = data[ordered_cols + remaining_cols]
-
-                sheet_name = str(jenis)[:31]
-
-            # TULIS DATA NORMAL DULU
-                data.to_excel(writer, sheet_name=sheet_name, index=False)
-
-                worksheet = writer.sheets[sheet_name]
-
-            # HEADER STYLE
-                for col_num, col_name in enumerate(data.columns):
-                    worksheet.write(0, col_num, col_name, header_format)
-
-            # AUTO WIDTH
-                for col_num, col in enumerate(data.columns):
-                    max_len = max(
-                        data[col].astype(str).map(len).max(),
-                        len(col)
-                    ) + 2
-                    worksheet.set_column(col_num, col_num, max_len)
-
-            # ZEBRA ROW
-                for row in range(1, len(data) + 1):
-                    fmt = zebra_format if row % 2 == 0 else cell_format
-                    worksheet.set_row(row, cell_format=fmt)
-
-                worksheet.freeze_panes(1, 0)
-                worksheet.autofilter(0, 0, len(data), len(data.columns)-1)
-
-    output.seek(0)
-    # ======================
     # ADMIN EDIT
-    # ======================
     if role == "admin":
 
         edited_df = st.data_editor(
@@ -1269,40 +511,53 @@ elif menu == "Monitoring":
             column_config={
                 "status": st.column_config.SelectboxColumn(
                     "Status",
-                    options=["Pengajuan", "diproses", "done", "Batal"],
-                    required=True
-                ),
-                "Download": st.column_config.LinkColumn(
-                    "Download",
-                    display_text="📥 Download"
+                    options=[
+                        "Pengajuan",
+                        "diproses",
+                        "done",
+                        "Batal"
+                    ]
                 )
             },
-            disabled=[col for col in df_filtered.columns if col != "status"]
+            disabled=[
+                col for col in df_filtered.columns
+                if col != "status"
+            ]
         )
 
-        col_btn1, col_btn2, col_spacer = st.columns([2, 2, 6])
+        if st.button("💾 Simpan"):
 
-        with col_btn1:
-            if st.button("💾 Simpan Perubahan"):
-                edited_df.to_excel("data.xlsx", index=False)
-                st.success("Berhasil")
-                st.rerun()
-
-        with col_btn2:
-            st.download_button(
-                "📥 Export Excel",
-                data=output.getvalue(),
-                file_name="EXPORT_CDM.xlsx",
-                use_container_width=True,
+            edited_df.to_excel(
+                "data.xlsx",
+                index=False
             )
 
-    else:
-        st.dataframe(df_filtered, use_container_width=True)
+            st.success("Berhasil disimpan")
+            st.rerun()
 
-        st.download_button(
+    else:
+
+        st.dataframe(
+            df_filtered,
+            use_container_width=True
+        )
+
+    # EXPORT
+    output = io.BytesIO()
+
+    with pd.ExcelWriter(output, engine="xlsxwriter") as writer:
+
+        df_filtered.to_excel(
+            writer,
+            index=False,
+            sheet_name="Monitoring"
+        )
+
+    output.seek(0)
+
+    st.download_button(
         "📥 Export Excel",
         data=output.getvalue(),
         file_name="EXPORT_CDM.xlsx",
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-)
-    st.markdown("</div>", unsafe_allow_html=True)
+    )
