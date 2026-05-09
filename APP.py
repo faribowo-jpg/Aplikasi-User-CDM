@@ -5,21 +5,21 @@ import base64
 import io
 from datetime import datetime
 
-# ==============================
+# =========================================================
 # CONFIG
-# ==============================
+# =========================================================
 st.set_page_config(
     page_title="Aplikasi Pengajuan User CDM",
     layout="wide"
 )
 
-# ==============================
+# =========================================================
 # CSS
-# ==============================
+# =========================================================
 st.markdown("""
 <style>
 
-/* BACKGROUND */
+/* GLOBAL */
 .main {
     background-color: #f5f7fa;
 }
@@ -30,8 +30,8 @@ st.markdown("""
     color: white;
     border-radius: 10px;
     border: none;
-    height: 38px;
     font-weight: 600;
+    height: 38px;
 }
 
 /* DOWNLOAD BUTTON */
@@ -47,7 +47,7 @@ st.markdown("""
     background: white;
     padding: 20px;
     border-radius: 16px;
-    box-shadow: 0px 4px 12px rgba(0,0,0,0.08);
+    box-shadow: 0px 4px 10px rgba(0,0,0,0.08);
     margin-bottom: 20px;
 }
 
@@ -60,19 +60,19 @@ st.markdown("""
     margin-bottom: 15px;
 }
 
-/* HEADER TABLE */
+/* TABLE HEADER */
 div[data-testid="stDataFrame"] div[role="columnheader"] {
     background: linear-gradient(90deg, #4facfe, #00c6ff) !important;
     color: white !important;
-    font-weight: 700 !important;
+    font-weight: bold !important;
 }
 
 </style>
 """, unsafe_allow_html=True)
 
-# ==============================
+# =========================================================
 # BACKGROUND
-# ==============================
+# =========================================================
 def set_bg(image_file):
 
     if not os.path.exists(image_file):
@@ -95,40 +95,79 @@ def set_bg(image_file):
         unsafe_allow_html=True
     )
 
-# ==============================
+# =========================================================
 # SAFE
-# ==============================
+# =========================================================
 def safe(x):
     return "" if pd.isna(x) else str(x)
 
-# ==============================
-# SESSION
-# ==============================
+# =========================================================
+# DOWNLOAD LINK
+# =========================================================
+def make_download_link(filename):
+
+    if pd.isna(filename) or filename == "":
+        return ""
+
+    path = os.path.join("uploads", filename)
+
+    if not os.path.exists(path):
+        return ""
+
+    with open(path, "rb") as f:
+        data = f.read()
+
+    b64 = base64.b64encode(data).decode()
+
+    return f"data:application/pdf;base64,{b64}"
+
+# =========================================================
+# SESSION INIT
+# =========================================================
 if "login" not in st.session_state:
     st.session_state.login = False
 
 if "menu" not in st.session_state:
     st.session_state.menu = "HOME"
 
-# ==============================
+# =========================================================
 # BACKGROUND SWITCH
-# ==============================
+# =========================================================
 if st.session_state.login:
     set_bg("background_app.jpg")
 else:
     set_bg("background_login.jpg")
 
-# ==============================
+# =========================================================
 # LOAD MASTER
-# ==============================
+# =========================================================
 @st.cache_data
 def load_master():
 
-    cabang = pd.read_excel("master_data.xlsx", sheet_name="cabang")
-    toko = pd.read_excel("master_data.xlsx", sheet_name="toko")
-    ms = pd.read_excel("master_data.xlsx", sheet_name="ms")
-    rekening = pd.read_excel("master_data.xlsx", sheet_name="rekening")
-    user = pd.read_excel("master_data.xlsx", sheet_name="user")
+    cabang = pd.read_excel(
+        "master_data.xlsx",
+        sheet_name="cabang"
+    )
+
+    toko = pd.read_excel(
+        "master_data.xlsx",
+        sheet_name="toko"
+    )
+
+    ms = pd.read_excel(
+        "master_data.xlsx",
+        sheet_name="ms"
+    )
+
+    rekening = pd.read_excel(
+        "master_data.xlsx",
+        sheet_name="rekening"
+    )
+
+    user = pd.read_excel(
+        "master_data.xlsx",
+        sheet_name="user"
+    )
 
     user["nik"] = (
         user["nik"]
@@ -141,9 +180,9 @@ def load_master():
 
 cabang, toko, ms, rekening, user = load_master()
 
-# ==============================
+# =========================================================
 # LOOKUP
-# ==============================
+# =========================================================
 def get_cabang(k):
 
     if not k:
@@ -167,7 +206,9 @@ def get_cabang(k):
 def get_toko(k):
 
     d = toko[
-        toko["kode_toko"].astype(str).str.upper() == str(k).upper()
+        toko["kode_toko"]
+        .astype(str)
+        .str.upper() == str(k).upper()
     ]
 
     return d.iloc[0] if not d.empty else None
@@ -175,7 +216,9 @@ def get_toko(k):
 def get_ms(k):
 
     d = ms[
-        ms["kode_ms"].astype(str).str.upper() == str(k).upper()
+        ms["kode_ms"]
+        .astype(str)
+        .str.upper() == str(k).upper()
     ]
 
     return d.iloc[0] if not d.empty else None
@@ -183,14 +226,16 @@ def get_ms(k):
 def get_rek(k):
 
     d = rekening[
-        rekening["kode_toko"].astype(str).str.upper() == str(k).upper()
+        rekening["kode_toko"]
+        .astype(str)
+        .str.upper() == str(k).upper()
     ]
 
     return d.iloc[0] if not d.empty else None
 
-# ==============================
+# =========================================================
 # LOAD DATA
-# ==============================
+# =========================================================
 def load_data():
 
     file = "data.xlsx"
@@ -213,35 +258,65 @@ def load_data():
         if col not in df.columns:
             df[col] = ""
 
-    df["user"] = df["user"].astype(str)
+    df["user"] = (
+        df["user"]
+        .fillna("")
+        .astype(str)
+    )
 
     return df
 
-# ==============================
+# =========================================================
 # FILTER ROLE
-# ==============================
+# =========================================================
 def filter_by_role(df, user_df, nik_login, role):
 
-    if df.empty:
-        return df
+    # ======================
+    # HANDLE EMPTY
+    # ======================
+    if df is None or df.empty:
+        return pd.DataFrame()
 
+    df = df.copy()
     user_df = user_df.copy()
 
-    user_df["nik"] = user_df["nik"].astype(str)
-    user_df["nik_regional"] = user_df["nik_regional"].astype(str)
+    # ======================
+    # VALIDASI USER COLUMN
+    # ======================
+    if "user" not in df.columns:
+        df["user"] = ""
+
+    df["user"] = (
+        df["user"]
+        .fillna("")
+        .astype(str)
+    )
+
+    # ======================
+    # NORMALIZE USER MASTER
+    # ======================
+    if "nik" in user_df.columns:
+        user_df["nik"] = (
+            user_df["nik"]
+            .fillna("")
+            .astype(str)
+        )
+
+    if "nik_regional" in user_df.columns:
+        user_df["nik_regional"] = (
+            user_df["nik_regional"]
+            .fillna("")
+            .astype(str)
+        )
 
     if "regional" in user_df.columns:
         user_df["regional"] = (
             user_df["regional"]
+            .fillna("")
             .astype(str)
             .str.strip()
             .str.upper()
         )
-
-    if "user" not in df.columns:
-        df["user"] = ""
-
-    df["user"] = df["user"].astype(str)
 
     # ======================
     # ADMIN
@@ -254,7 +329,9 @@ def filter_by_role(df, user_df, nik_login, role):
     # ======================
     elif role == "rfm":
 
-        rfm_data = user_df[user_df["nik"] == nik_login]
+        rfm_data = user_df[
+            user_df["nik"] == str(nik_login)
+        ]
 
         if rfm_data.empty:
             return pd.DataFrame()
@@ -269,7 +346,11 @@ def filter_by_role(df, user_df, nik_login, role):
             user_df["regional"] == regional_rfm
         ]
 
-        nik_list = user_regional["nik"].tolist()
+        nik_list = (
+            user_regional["nik"]
+            .astype(str)
+            .tolist()
+        )
 
         return df[df["user"].isin(nik_list)]
 
@@ -279,11 +360,16 @@ def filter_by_role(df, user_df, nik_login, role):
     elif role == "regional":
 
         user_regional = user_df[
-            user_df["nik_regional"] == nik_login
+            user_df["nik_regional"] == str(nik_login)
         ]
 
-        nik_list = user_regional["nik"].tolist()
-        nik_list.append(nik_login)
+        nik_list = (
+            user_regional["nik"]
+            .astype(str)
+            .tolist()
+        )
+
+        nik_list.append(str(nik_login))
 
         return df[df["user"].isin(nik_list)]
 
@@ -292,40 +378,45 @@ def filter_by_role(df, user_df, nik_login, role):
     # ======================
     else:
 
-        return df[df["user"] == nik_login]
+        return df[
+            df["user"] == str(nik_login)
+        ]
 
-# ==============================
-# SAVE
-# ==============================
+# =========================================================
+# SAVE DATA
+# =========================================================
 def save(data):
 
     file = "data.xlsx"
 
     if os.path.exists(file):
 
-        df_old = pd.read_excel(file)
+        old = pd.read_excel(file)
 
-        df_new = pd.concat(
-            [df_old, pd.DataFrame([data])],
+        new = pd.concat(
+            [old, pd.DataFrame([data])],
             ignore_index=True
         )
 
     else:
 
-        df_new = pd.DataFrame([data])
+        new = pd.DataFrame([data])
 
-    df_new.to_excel(file, index=False)
+    new.to_excel(file, index=False)
 
-# ==============================
+# =========================================================
 # LOGIN
-# ==============================
+# =========================================================
 if not st.session_state.login:
 
     col1, col2 = st.columns([1,1])
 
     with col1:
 
-        st.markdown('<div class="card">', unsafe_allow_html=True)
+        st.markdown(
+            '<div class="card">',
+            unsafe_allow_html=True
+        )
 
         st.image("logo_alfamart.png", width=180)
 
@@ -335,7 +426,10 @@ if not st.session_state.login:
         )
 
         nik = st.text_input("NIK")
-        pw = st.text_input("Password", type="password")
+        pw = st.text_input(
+            "Password",
+            type="password"
+        )
 
         if st.button("Login"):
 
@@ -366,9 +460,9 @@ if not st.session_state.login:
 
     st.stop()
 
-# ==============================
+# =========================================================
 # HEADER
-# ==============================
+# =========================================================
 col1, col2 = st.columns([1,6])
 
 with col1:
@@ -382,17 +476,17 @@ with col2:
         unsafe_allow_html=True
     )
 
-# ==============================
+# =========================================================
 # SIDEBAR
-# ==============================
+# =========================================================
 with st.sidebar:
 
     st.markdown(
         f"""
         <div class="profile-box">
             <h4>👤 {st.session_state.nama}</h4>
-            <p>Cabang: {st.session_state.kode_cabang}</p>
-            <p>Role: {st.session_state.role}</p>
+            <p>Cabang : {st.session_state.kode_cabang}</p>
+            <p>Role : {st.session_state.role}</p>
         </div>
         """,
         unsafe_allow_html=True
@@ -412,14 +506,14 @@ with st.sidebar:
         st.session_state.clear()
         st.rerun()
 
-# ==============================
+# =========================================================
 # MENU
-# ==============================
+# =========================================================
 menu = st.session_state.menu
 
-# ==============================
+# =========================================================
 # HOME
-# ==============================
+# =========================================================
 if menu == "HOME":
 
     st.markdown(
@@ -431,13 +525,18 @@ if menu == "HOME":
         unsafe_allow_html=True
     )
 
-# ==============================
+# =========================================================
 # MONITORING
-# ==============================
+# =========================================================
 elif menu == "Monitoring":
 
     nik_login = str(st.session_state.nik)
-    role = str(st.session_state.role).strip().lower()
+
+    role = (
+        str(st.session_state.role)
+        .strip()
+        .lower()
+    )
 
     df = load_data()
 
@@ -456,17 +555,32 @@ elif menu == "Monitoring":
     col1, col2, col3, col4 = st.columns(4)
 
     col1.metric("Total", len(df_view))
+
     col2.metric(
         "Pengajuan",
-        len(df_view[df_view["status"] == "Pengajuan"])
+        len(
+            df_view[
+                df_view["status"] == "Pengajuan"
+            ]
+        )
     )
+
     col3.metric(
         "Done",
-        len(df_view[df_view["status"] == "done"])
+        len(
+            df_view[
+                df_view["status"] == "done"
+            ]
+        )
     )
+
     col4.metric(
         "Batal",
-        len(df_view[df_view["status"] == "Batal"])
+        len(
+            df_view[
+                df_view["status"] == "Batal"
+            ]
+        )
     )
 
     st.markdown("---")
@@ -474,10 +588,18 @@ elif menu == "Monitoring":
     # FILTER
     filter_status = st.selectbox(
         "Filter Status",
-        ["Semua", "Pengajuan", "diproses", "done", "Batal"]
+        [
+            "Semua",
+            "Pengajuan",
+            "diproses",
+            "done",
+            "Batal"
+        ]
     )
 
-    search = st.text_input("Cari Kode Toko")
+    search = st.text_input(
+        "Cari Kode Toko"
+    )
 
     df_filtered = df_view.copy()
 
@@ -492,14 +614,19 @@ elif menu == "Monitoring":
         df_filtered = df_filtered[
             df_filtered["kode_toko"]
             .astype(str)
-            .str.contains(search, case=False, na=False)
+            .str.contains(
+                search,
+                case=False,
+                na=False
+            )
         ]
 
     # DOWNLOAD LINK
     if "file" in df_filtered.columns:
 
-        df_filtered["Download"] = df_filtered["file"].apply(
-            lambda x: make_download_link(x)
+        df_filtered["Download"] = (
+            df_filtered["file"]
+            .apply(make_download_link)
         )
 
     # ADMIN EDIT
@@ -545,7 +672,10 @@ elif menu == "Monitoring":
     # EXPORT
     output = io.BytesIO()
 
-    with pd.ExcelWriter(output, engine="xlsxwriter") as writer:
+    with pd.ExcelWriter(
+        output,
+        engine="xlsxwriter"
+    ) as writer:
 
         df_filtered.to_excel(
             writer,
