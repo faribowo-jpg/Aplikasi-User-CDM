@@ -493,7 +493,7 @@ if menu == "HOME":
     col1, col2, col3 = st.columns([1, 3, 1])
 
     with col2:
-     st.image("cdm_rule.png", use_container_width=True)
+     
 
 # ==============================
 # NOTIF BADGE
